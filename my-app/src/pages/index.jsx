@@ -1,6 +1,7 @@
 import { animate, svg, stagger } from 'animejs';
 import { useEffect } from 'react';
 import ThreeDHoverGallery from '../components/lightswind/3d-hover-gallery';
+import ScrollReveal from '../components/lightswind/scroll-reveal';
 
 function Index() {
   useEffect(() => {
@@ -76,6 +77,73 @@ function Index() {
             onImageHover={(index, image) => console.log(`Hovered image ${index}: ${image}`)}
             onImageFocus={(index, image) => console.log(`Focused image ${index}: ${image}`)}
           />
+        </div>
+      </div>
+
+      {/* Scroll Reveal Section */}
+      <div className="bg-gray-100 h-screen flex items-center justify-center">
+        <div className="container mx-auto px-4">
+          <div className="w-full space-y-8">
+            <ScrollReveal
+              size="2xl"
+              align="center"
+              variant="primary"
+              enableBlur={true}
+              staggerDelay={0.1}
+              duration={1.2}
+              textClassName="text-7xl md:text-9xl lg:text-[10rem] xl:text-[15rem] font-bold leading-tight text-center"
+            >
+              Introducing to you Dr.Mario
+            </ScrollReveal>
+
+            <ScrollReveal
+              size="xl"
+              align="center"
+              variant="muted"
+              enableBlur={true}
+              staggerDelay={0.05}
+              duration={0.8}
+              textClassName="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-medium leading-relaxed text-center"
+            >
+              Revolutionary AI-powered diabetic retinopathy detection through retinal imaging
+            </ScrollReveal>
+
+            <ScrollReveal
+              size="2xl"
+              align="center"
+              variant="default"
+              enableBlur={true}
+              staggerDelay={0.08}
+              duration={1.0}
+              textClassName="text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold leading-tight text-center"
+            >
+              Early detection saves vision and lives
+            </ScrollReveal>
+
+            <ScrollReveal
+              size="xl"
+              align="center"
+              variant="accent"
+              enableBlur={true}
+              staggerDelay={0.06}
+              duration={0.9}
+              textClassName="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold leading-relaxed text-center"
+            >
+              Advanced machine learning algorithms analyze retinal scans with 99% accuracy
+            </ScrollReveal>
+
+            <ScrollReveal
+              size="2xl"
+              align="center"
+              variant="primary"
+              enableBlur={true}
+              staggerDelay={0.12}
+              duration={1.1}
+              textClassName="text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold leading-tight text-center"
+            >
+              Transforming healthcare through intelligent retinal analysis
+            </ScrollReveal>
+          </div>
         </div>
       </div>
     </div>

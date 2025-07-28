@@ -1,5 +1,6 @@
 import { animate, svg, stagger } from 'animejs';
 import { useEffect } from 'react';
+import ThreeDHoverGallery from '../components/lightswind/3d-hover-gallery';
 
 function Index() {
   useEffect(() => {
@@ -39,6 +40,43 @@ function Index() {
             <path className="line" d="M274 73a17 17 0 1 1 0-34 17 17 0 0 1 0 34z" />
             </g>
         </svg>
+      </div>
+      
+      {/* 3D Hover Gallery Section */}
+      <div className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          
+          <ThreeDHoverGallery 
+            images={[
+              "https://images.pexels.com/photos/26797335/pexels-photo-26797335/free-photo-of-scenic-view-of-mountains.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/12194487/pexels-photo-12194487.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32423809/pexels-photo-32423809/free-photo-of-aerial-view-of-kayaking-at-robberg-south-africa.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32296519/pexels-photo-32296519/free-photo-of-rocky-coastline-of-cape-point-with-turquoise-waters.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32396739/pexels-photo-32396739/free-photo-of-serene-motorcycle-ride-through-bamboo-grove.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32304900/pexels-photo-32304900/free-photo-of-scenic-view-of-cape-town-s-twelve-apostles.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32437034/pexels-photo-32437034/free-photo-of-fisherman-holding-freshly-caught-red-drum-fish.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+              "https://images.pexels.com/photos/32469847/pexels-photo-32469847/free-photo-of-deer-drinking-from-natural-water-source-in-wilderness.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+            ]}
+            itemWidth={12}
+            itemHeight={20}
+            gap={1.2}
+            perspective={50}
+            hoverScale={15}
+            transitionDuration={1.25}
+            backgroundColor="#ffffff"
+            grayscaleStrength={1}
+            brightnessLevel={0.5}
+            activeWidth={45}
+            rotationAngle={35}
+            zDepth={10}
+            enableKeyboardNavigation={true}
+            autoPlay={false}
+            autoPlayDelay={3000}
+            onImageClick={(index, image) => console.log(`Clicked image ${index}: ${image}`)}
+            onImageHover={(index, image) => console.log(`Hovered image ${index}: ${image}`)}
+            onImageFocus={(index, image) => console.log(`Focused image ${index}: ${image}`)}
+          />
+        </div>
       </div>
     </div>
   );

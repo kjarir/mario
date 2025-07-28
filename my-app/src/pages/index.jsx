@@ -20,7 +20,7 @@ function Index() {
         <svg
           viewBox="0 0 304 112"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-100 h-100 text-white border-2 border-white"
+          className="w-100 h-100 text-white"
         >
           <g
             stroke="currentColor"

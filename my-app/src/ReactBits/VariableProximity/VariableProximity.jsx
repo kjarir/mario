@@ -119,7 +119,7 @@ const VariableProximity = forwardRef((props, ref) => {
       onClick={onClick}
       style={{
         display: "block",
-        fontFamily: '"Roboto", "Arial", "Helvetica", sans-serif',
+        fontFamily: '"Luckiest Guy", "Arial", "Helvetica", sans-serif',
         cursor: "pointer",
         fontSize: "inherit",
         padding: "2rem",

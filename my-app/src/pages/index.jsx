@@ -89,7 +89,7 @@ function Index() {
         className="bg-gray-100 h-screen flex items-center justify-center p-10 cursor-pointer"
       >
         <div className="w-full max-w-6xl">
-          <div className="text-[3.5rem] md:text-[3rem] lg:text-[4rem] xl:text-[5rem] font-light leading-tight text-left">
+          <div className="text-[3.2rem] md:text-[3rem] lg:text-[4rem] xl:text-[4rem] font-light leading-tight text-left">
             <VariableProximity
               label="Dr.Mario is an AI-powered retinal imaging system designed to detect early signs of Diabetic Retinopathy (DR). Leveraging deep learning and medical image analysis, it aims to assist ophthalmologists by providing fast, accurate, and non-invasive diagnosis from fundus images enabling timely intervention and reducing the risk of vision loss in diabetic patients."
               fromFontVariationSettings="'wght' 100"

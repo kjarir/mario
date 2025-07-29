@@ -8,7 +8,7 @@ export const useLenis = () => {
     // Initialize Lenis
     lenisRef.current = new Lenis({
       duration:3,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -1 * t)), // https://www.desmos.com/calculator/brs54l4xou
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
       direction: 'vertical', // vertical, horizontal
       gestureDirection: 'vertical', // vertical, horizontal, both
       smooth: true,

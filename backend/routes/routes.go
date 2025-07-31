@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"dr-mario-backend/config"
 	"dr-mario-backend/handlers"
 	"dr-mario-backend/middleware"
 
@@ -14,50 +13,56 @@ func SetupRouter() *gin.Engine {
 
 	// CORS configuration
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = config.AppConfig.CORS.AllowedOrigins
+	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://localhost:5173"}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	corsConfig.AllowCredentials = true
 	router.Use(cors.New(corsConfig))
 
-	// Health check
+	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "healthy",
-			"service": "Dr. Mario Retinal Imaging API",
+			"message": "Dr. Mario Backend is running",
 			"version": "1.0.0",
 		})
 	})
 
-	// API routes
-	api := router.Group("/api/v1")
+	// API v1 routes
+	v1 := router.Group("/api/v1")
 	{
-		// Public routes
-		auth := api.Group("/auth")
+		// Authentication routes (public)
+		auth := v1.Group("/auth")
 		{
 			auth.POST("/register", handlers.Register)
 			auth.POST("/login", handlers.Login)
 		}
 
 		// Protected routes
-		protected := api.Group("/")
+		protected := v1.Group("/")
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// User profile
-			profile := protected.Group("/profile")
-			{
-				profile.GET("", handlers.GetProfile)
-				profile.PUT("", handlers.UpdateProfile)
-			}
+			protected.GET("/profile", handlers.GetProfile)
+			protected.PUT("/profile", handlers.UpdateProfile)
 
 			// Patient routes
 			patients := protected.Group("/patients")
 			{
 				patients.GET("/profile", handlers.GetPatientProfile)
 				patients.PUT("/profile", handlers.UpdatePatientProfile)
-				patients.GET("", middleware.RoleMiddleware("doctor", "admin"), handlers.GetPatients)
+				patients.GET("/", middleware.RoleMiddleware("doctor", "admin"), handlers.GetPatients)
 				patients.GET("/:id", handlers.GetPatient)
 				patients.GET("/:id/images", handlers.GetPatientImages)
+			}
+
+			// Doctor routes
+			doctors := protected.Group("/doctors")
+			{
+				doctors.GET("/", handlers.GetDoctors)
+				doctors.GET("/:id", handlers.GetDoctor)
+				doctors.GET("/profile", middleware.RoleMiddleware("doctor"), handlers.GetDoctorProfile)
+				doctors.PUT("/profile", middleware.RoleMiddleware("doctor"), handlers.UpdateDoctorProfile)
 			}
 
 			// Image routes
@@ -65,7 +70,8 @@ func SetupRouter() *gin.Engine {
 			{
 				images.POST("/upload", handlers.UploadImage)
 				images.POST("/detect", handlers.DetectDR)
-				images.GET("", handlers.GetImages)
+				images.POST("/scan-cnn", handlers.ScanWithCNN) // New CNN scanning endpoint
+				images.GET("/", handlers.GetImages)
 				images.GET("/:id", handlers.GetImage)
 				images.GET("/:id/file", handlers.ServeImage)
 			}
@@ -73,24 +79,26 @@ func SetupRouter() *gin.Engine {
 			// Appointment routes
 			appointments := protected.Group("/appointments")
 			{
-				appointments.POST("", handlers.CreateAppointment)
-				appointments.GET("", handlers.GetAppointments)
+				appointments.POST("/", handlers.CreateAppointment)
+				appointments.GET("/", handlers.GetAppointments)
 				appointments.GET("/:id", handlers.GetAppointment)
 				appointments.PUT("/:id", handlers.UpdateAppointment)
 				appointments.DELETE("/:id", handlers.CancelAppointment)
 			}
 
-			// Doctor routes (for future expansion)
-			doctors := protected.Group("/doctors")
+			// Analytics routes (doctors and admins only)
+			analytics := protected.Group("/analytics")
+			analytics.Use(middleware.RoleMiddleware("doctor", "admin"))
 			{
-				doctors.GET("", handlers.GetDoctors)
-				doctors.GET("/:id", handlers.GetDoctor)
+				analytics.GET("/stats", handlers.GetAnalytics)
+				analytics.GET("/patient/:id", handlers.GetPatientAnalytics)
+				analytics.GET("/doctor/:id", handlers.GetDoctorAnalytics)
 			}
 
-			// Analytics routes
-			analytics := protected.Group("/analytics")
+			// CNN service routes
+			cnn := protected.Group("/cnn")
 			{
-				analytics.GET("/stats", middleware.RoleMiddleware("doctor", "admin"), handlers.GetAnalytics)
+				cnn.GET("/health", handlers.GetCNNHealth) // CNN health check
 			}
 		}
 	}

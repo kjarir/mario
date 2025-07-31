@@ -26,6 +26,11 @@ type DetectionRequest struct {
 	ImageID uuid.UUID `json:"image_id" binding:"required"`
 }
 
+type CNNScanRequest struct {
+	ImageID      uuid.UUID `json:"image_id" binding:"required"`
+	AnalysisType string    `json:"analysis_type"` // "basic", "comprehensive", "detailed"
+}
+
 // UploadImage handles retinal image upload
 func UploadImage(c *gin.Context) {
 	user, err := middleware.GetUserFromContext(c)
@@ -151,7 +156,7 @@ func UploadImage(c *gin.Context) {
 	})
 }
 
-// DetectDR performs AI detection on uploaded images
+// DetectDR performs AI detection on uploaded images using CNN
 func DetectDR(c *gin.Context) {
 	user, err := middleware.GetUserFromContext(c)
 	if err != nil {
@@ -191,7 +196,7 @@ func DetectDR(c *gin.Context) {
 		return
 	}
 
-	// Perform AI detection
+	// Perform AI detection using CNN
 	startTime := time.Now()
 	result, err := services.DetectDiabeticRetinopathy(image.FilePath)
 	processingTime := time.Since(startTime).Seconds()
@@ -202,6 +207,16 @@ func DetectDR(c *gin.Context) {
 		storage.GlobalStorage.UpdateImage(image)
 
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Detection failed: " + err.Error()})
+		return
+	}
+
+	// Check if detection was successful
+	if result.Error != "" {
+		// Update image status to error
+		image.Status = "error"
+		storage.GlobalStorage.UpdateImage(image)
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Detection failed: " + result.Error})
 		return
 	}
 
@@ -221,7 +236,7 @@ func DetectDR(c *gin.Context) {
 		HasMicroaneurysms: result.HasMicroaneurysms,
 		AnalysisDate:      time.Now(),
 		ProcessingTime:    processingTime,
-		ModelVersion:      "v1.0.0",
+		ModelVersion:      result.ModelVersion,
 	}
 
 	if user.Role == "doctor" {
@@ -239,6 +254,109 @@ func DetectDR(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Detection completed successfully",
 		"result":  detectionResult,
+	})
+}
+
+// ScanWithCNN performs comprehensive CNN analysis on uploaded images
+func ScanWithCNN(c *gin.Context) {
+	user, err := middleware.GetUserFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	var req CNNScanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get image
+	image, err := storage.GlobalStorage.GetImageByID(req.ImageID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Image not found"})
+		return
+	}
+
+	// Check permissions
+	if user.Role == "patient" {
+		patient, err := storage.GlobalStorage.GetPatientByUserID(user.ID)
+		if err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+			return
+		}
+		if image.PatientID != patient.ID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
+			return
+		}
+	}
+
+	// Check if image exists
+	if _, err := os.Stat(image.FilePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Image file not found"})
+		return
+	}
+
+	// Initialize CNN service
+	cnnService := services.NewCNNService()
+
+	// Validate image for CNN processing
+	if err := cnnService.ValidateImage(image.FilePath); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Image validation failed: " + err.Error()})
+		return
+	}
+
+	// Perform comprehensive CNN analysis
+	startTime := time.Now()
+	cnnResult, err := cnnService.ScanImageWithCNN(image.FilePath)
+	processingTime := time.Since(startTime).Seconds()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "CNN analysis failed: " + err.Error()})
+		return
+	}
+
+	// Check if CNN analysis was successful
+	if !cnnResult.Success {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "CNN analysis failed: " + cnnResult.Error})
+		return
+	}
+
+	// Update image status
+	image.Status = "cnn_processed"
+	storage.GlobalStorage.UpdateImage(image)
+
+	// Create comprehensive detection result
+	detectionResult := &storage.DetectionResult{
+		ImageID:           image.ID,
+		HasDR:             cnnResult.HasDR,
+		DRStage:           cnnResult.DRStage,
+		Confidence:        cnnResult.Confidence,
+		HasMacularEdema:   cnnResult.MacularEdema,
+		HasHemorrhages:    cnnResult.Hemorrhages,
+		HasExudates:       cnnResult.Exudates,
+		HasMicroaneurysms: cnnResult.Microaneurysms,
+		AnalysisDate:      time.Now(),
+		ProcessingTime:    processingTime,
+		ModelVersion:      cnnResult.ModelVersion,
+	}
+
+	if user.Role == "doctor" {
+		doctor, err := storage.GlobalStorage.GetDoctorByUserID(user.ID)
+		if err == nil {
+			detectionResult.DoctorID = doctor.ID
+		}
+	}
+
+	if err := storage.GlobalStorage.CreateDetectionResult(detectionResult); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save CNN analysis result"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":          "CNN analysis completed successfully",
+		"result":           cnnResult,
+		"detection_result": detectionResult,
 	})
 }
 
@@ -353,4 +471,22 @@ func ServeImage(c *gin.Context) {
 	}
 
 	c.File(image.FilePath)
+}
+
+// GetCNNHealth checks the health of the CNN service
+func GetCNNHealth(c *gin.Context) {
+	err := services.GetCNNHealth()
+	if err != nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status":  "unhealthy",
+			"error":   err.Error(),
+			"message": "CNN service is not available",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "healthy",
+		"message": "CNN service is available",
+	})
 }

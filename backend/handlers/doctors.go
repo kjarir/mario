@@ -19,7 +19,7 @@ type DoctorProfileRequest struct {
 
 // GetDoctors returns all doctors
 func GetDoctors(c *gin.Context) {
-	user, err := middleware.GetUserFromContext(c)
+	_, err := middleware.GetUserFromContext(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 		return

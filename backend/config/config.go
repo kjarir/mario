@@ -92,7 +92,7 @@ func getEnvAsInt64(key string, defaultValue int64) int64 {
 func getEnvAsFloat(key string, defaultValue float64) float64 {
 	if value := os.Getenv(key); value != "" {
 		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
-			return defaultValue
+			return floatValue
 		}
 	}
 	return defaultValue
@@ -102,7 +102,8 @@ func getEnvAsSlice(key string, defaultValue []string) []string {
 	if value := os.Getenv(key); value != "" {
 		// Simple comma-separated values
 		// In production, you might want more sophisticated parsing
-		return []string{value}
+		// For now, return the default value if the env var exists
+		return defaultValue
 	}
 	return defaultValue
 }

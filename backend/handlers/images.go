@@ -381,7 +381,7 @@ func GetImages(c *gin.Context) {
 			return
 		}
 	} else if user.Role == "doctor" {
-		doctor, err := storage.GlobalStorage.GetDoctorByUserID(user.ID)
+		_, err := storage.GlobalStorage.GetDoctorByUserID(user.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Doctor profile not found"})
 			return

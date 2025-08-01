@@ -54,14 +54,14 @@ func CreateAppointment(c *gin.Context) {
 	}
 
 	// Verify patient exists
-	patient, err := storage.GlobalStorage.GetPatientByID(req.PatientID)
+	_, err = storage.GlobalStorage.GetPatientByID(req.PatientID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Patient not found"})
 		return
 	}
 
 	// Verify doctor exists
-	doctor, err := storage.GlobalStorage.GetDoctorByID(req.DoctorID)
+	_, err = storage.GlobalStorage.GetDoctorByID(req.DoctorID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Doctor not found"})
 		return
